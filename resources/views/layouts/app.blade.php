@@ -13,13 +13,19 @@
 
 <div class="min-h-screen flex">
 
+    {{-- Mobile sidebar overlay --}}
+    <div id="sidebar-overlay" class="fixed inset-0 z-40 bg-black/50 hidden lg:hidden" onclick="closeSidebar()"></div>
+
     {{-- ===================== SIDEBAR ===================== --}}
-    <aside class="w-64 bg-indigo-900 text-white flex flex-col shadow-xl">
+    <aside id="sidebar" class="fixed inset-y-0 left-0 z-50 w-64 bg-indigo-900 text-white flex flex-col shadow-xl -translate-x-full lg:translate-x-0 lg:static lg:inset-auto lg:z-auto transition-transform duration-300 ease-in-out">
         <div class="flex items-center gap-3 px-6 py-5 border-b border-indigo-800">
-            <svg class="w-8 h-8 text-indigo-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg class="w-8 h-8 text-indigo-300 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
             </svg>
-            <span class="text-lg font-bold tracking-wide">Leave Manager</span>
+            <span class="text-lg font-bold tracking-wide flex-1">Leave Manager</span>
+            <button onclick="closeSidebar()" class="lg:hidden text-indigo-300 hover:text-white p-1 rounded">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+            </button>
         </div>
 
         <nav class="flex-1 px-4 py-6 space-y-1 text-sm">
@@ -82,10 +88,15 @@
     <div class="flex-1 flex flex-col min-w-0">
 
         {{-- Top bar --}}
-        <header class="bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between">
-            <h1 class="text-lg font-semibold text-gray-800">@yield('title', 'Dashboard')</h1>
-            <div class="flex items-center gap-4 text-sm text-gray-500">
-                <span>{{ now()->format('D, d M Y') }}</span>
+        <header class="bg-white border-b border-gray-200 px-4 sm:px-6 py-4 flex items-center justify-between">
+            <div class="flex items-center gap-3">
+                <button onclick="openSidebar()" class="lg:hidden p-2 rounded-lg hover:bg-gray-100 text-gray-600" aria-label="Open menu">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg>
+                </button>
+                <h1 class="text-lg font-semibold text-gray-800">@yield('title', 'Dashboard')</h1>
+            </div>
+            <div class="flex items-center gap-3 sm:gap-4 text-sm text-gray-500">
+                <span class="hidden sm:inline">{{ now()->format('D, d M Y') }}</span>
                 @if(auth()->user()->unreadNotifications->count())
                     <a href="{{ route('dashboard') }}" class="relative">
                         <svg class="w-6 h-6 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/></svg>
@@ -102,7 +113,7 @@
         </header>
 
         {{-- Flash Messages --}}
-        <div class="px-6 pt-4 space-y-2">
+        <div class="px-4 sm:px-6 pt-4 space-y-2">
             @if(session('success'))
                 <div class="p-4 bg-green-50 border border-green-200 text-green-800 rounded-lg flex items-center gap-2 text-sm">
                     <svg class="w-5 h-5 flex-shrink-0 text-green-500" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg>
@@ -118,7 +129,7 @@
         </div>
 
         {{-- Page Content --}}
-        <main class="flex-1 overflow-y-auto p-6">
+        <main class="flex-1 overflow-y-auto p-4 sm:p-6">
             @yield('content')
         </main>
 
@@ -129,5 +140,17 @@
 
 </div>
 
+<script>
+    function openSidebar() {
+        document.getElementById('sidebar').classList.remove('-translate-x-full');
+        document.getElementById('sidebar-overlay').classList.remove('hidden');
+        document.body.classList.add('overflow-hidden');
+    }
+    function closeSidebar() {
+        document.getElementById('sidebar').classList.add('-translate-x-full');
+        document.getElementById('sidebar-overlay').classList.add('hidden');
+        document.body.classList.remove('overflow-hidden');
+    }
+</script>
 </body>
 </html>
