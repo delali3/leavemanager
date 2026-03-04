@@ -9,6 +9,25 @@
         <form method="POST" action="{{ route('leave-requests.store') }}" enctype="multipart/form-data" class="space-y-4" id="leaveForm">
             @csrf
 
+            {{-- ===== On Behalf Of (Managers / HR / Admin only) ===== --}}
+            @if($employees->isNotEmpty())
+            <div class="p-4 bg-indigo-50 border border-indigo-100 rounded-lg">
+                <label class="block text-sm font-medium text-indigo-800 mb-1">
+                    Applying for
+                </label>
+                <select id="onBehalfSelect" name="on_behalf_of_user_id"
+                        class="w-full border border-indigo-200 rounded-lg px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                    <option value="" {{ $targetUserId === null ? 'selected' : '' }}>Myself</option>
+                    @foreach($employees as $emp)
+                        <option value="{{ $emp->id }}" {{ $targetUserId == $emp->id ? 'selected' : '' }}>
+                            {{ $emp->name }} ({{ $emp->department }})
+                        </option>
+                    @endforeach
+                </select>
+                <p class="text-xs text-indigo-500 mt-1">Select an employee to submit leave on their behalf.</p>
+            </div>
+            @endif
+
             {{-- Leave Type --}}
             <div>
                 <label class="block text-sm font-medium text-gray-700 mb-1">Leave Type <span class="text-red-500">*</span></label>
@@ -22,7 +41,9 @@
                                 data-max="{{ $type->max_days }}"
                                 {{ old('leave_type_id') == $type->id ? 'selected' : '' }}>
                             {{ $type->name }}
-                            ({{ $balances[$type->id]->remaining_days ?? 0 }} days remaining)
+                            @if(isset($balances[$type->id]))
+                                ({{ $balances[$type->id]->remaining_days }} days remaining)
+                            @endif
                         </option>
                     @endforeach
                 </select>
@@ -124,5 +145,19 @@ document.getElementById('leaveTypeSelect').addEventListener('change', function (
     const att = document.querySelector('[name="attachment"]');
     att.required = req;
 });
+
+// On-behalf-of: reload page to refresh balances for selected employee
+const onBehalfSelect = document.getElementById('onBehalfSelect');
+if (onBehalfSelect) {
+    onBehalfSelect.addEventListener('change', function () {
+        const url = new URL(window.location.href);
+        if (this.value) {
+            url.searchParams.set('target_user', this.value);
+        } else {
+            url.searchParams.delete('target_user');
+        }
+        window.location.href = url.toString();
+    });
+}
 </script>
 @endsection

@@ -23,25 +23,36 @@ class ProfileController extends Controller
 
     /**
      * Update the user's profile information.
+     * Employees cannot change their name or email — only HR/admin can do that via User management.
      */
     public function update(ProfileUpdateRequest $request): RedirectResponse
     {
-        $request->user()->fill($request->validated());
+        $user = $request->user();
 
-        if ($request->user()->isDirty('email')) {
-            $request->user()->email_verified_at = null;
+        if (!$user->isEmployee()) {
+            $user->fill($request->validated());
+
+            if ($user->isDirty('email')) {
+                $user->email_verified_at = null;
+            }
+
+            $user->save();
         }
-
-        $request->user()->save();
 
         return Redirect::route('profile.edit')->with('status', 'profile-updated');
     }
 
     /**
      * Delete the user's account.
+     * Employees cannot permanently delete their own accounts.
      */
     public function destroy(Request $request): RedirectResponse
     {
+        if ($request->user()->isEmployee()) {
+            return Redirect::route('profile.edit')
+                ->with('error', 'Employee accounts cannot be deleted. Please contact HR to deactivate your account.');
+        }
+
         $request->validateWithBag('userDeletion', [
             'password' => ['required', 'current_password'],
         ]);

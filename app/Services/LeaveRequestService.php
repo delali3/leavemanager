@@ -30,6 +30,11 @@ class LeaveRequestService
 
         $leaveType = LeaveType::findOrFail($data['leave_type_id']);
 
+        // Check hr_only restriction
+        if ($leaveType->hr_only && !$user->hasAnyRole(['admin', 'hr'])) {
+            throw new \RuntimeException('Unpaid leave can only be arranged by HR. Please contact your HR department.');
+        }
+
         // Check balance
         if (!$this->balanceService->hasEnoughBalance($user, $leaveType->id, $totalDays)) {
             throw new \RuntimeException('Insufficient leave balance for this request.');

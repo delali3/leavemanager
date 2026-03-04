@@ -40,14 +40,14 @@ class LeaveRequestPolicy
 
     public function approve(User $user, LeaveRequest $leaveRequest): bool
     {
-        return $user->hasAnyRole(['admin', 'hr', 'manager'])
+        return $user->hasAnyRole(['admin', 'hr'])
             && $leaveRequest->isPending()
-            && $user->id !== $leaveRequest->user_id; // cannot approve own request
+            && $user->id !== $leaveRequest->user_id;
     }
 
     public function reject(User $user, LeaveRequest $leaveRequest): bool
     {
-        return $user->hasAnyRole(['admin', 'hr', 'manager'])
+        return $user->hasAnyRole(['admin', 'hr'])
             && $leaveRequest->isPending()
             && $user->id !== $leaveRequest->user_id;
     }

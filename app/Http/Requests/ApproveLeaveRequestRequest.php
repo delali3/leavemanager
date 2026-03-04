@@ -8,7 +8,7 @@ class ApproveLeaveRequestRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        return $this->user()->hasAnyRole(['admin', 'hr', 'manager']);
+        return $this->user()->hasAnyRole(['admin', 'hr']);
     }
 
     public function rules(): array

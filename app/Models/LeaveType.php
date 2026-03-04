@@ -17,6 +17,7 @@ class LeaveType extends Model
         'paid',
         'carry_forward',
         'requires_attachment',
+        'hr_only',
     ];
 
     protected function casts(): array
@@ -25,6 +26,7 @@ class LeaveType extends Model
             'paid'                => 'boolean',
             'carry_forward'       => 'boolean',
             'requires_attachment' => 'boolean',
+            'hr_only'             => 'boolean',
             'max_days'            => 'integer',
         ];
     }

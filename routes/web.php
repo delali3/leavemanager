@@ -43,12 +43,16 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::resource('leave-requests', LeaveRequestController::class)
         ->except(['edit', 'update']);
 
-    // Approval actions (managers, HR, admin)
+    // Approval actions (HR and admin only)
     Route::post('leave-requests/{leave_request}/approve', [LeaveRequestController::class, 'approve'])
         ->name('leave-requests.approve');
 
     Route::post('leave-requests/{leave_request}/reject', [LeaveRequestController::class, 'reject'])
         ->name('leave-requests.reject');
+
+    // Printable leave letter (approved requests only)
+    Route::get('leave-requests/{leave_request}/letter', [LeaveRequestController::class, 'letter'])
+        ->name('leave-requests.letter');
 
     /*
     |--------------------------------------------------------------------------

@@ -66,13 +66,11 @@ class RolePermissionSeeder extends Seeder
             'view reports',
         ]);
 
-        // Manager
+        // Manager — can view and create requests (including on behalf of employees), but cannot approve/reject
         $manager = Role::firstOrCreate(['name' => 'manager']);
         $manager->syncPermissions([
             'view leave types',
             'view all leave requests',
-            'approve leave requests',
-            'reject leave requests',
             'create leave requests',
             'view own leave requests',
             'view reports',

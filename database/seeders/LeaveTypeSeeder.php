@@ -12,10 +12,11 @@ class LeaveTypeSeeder extends Seeder
         $types = [
             [
                 'name'                => 'Annual Leave',
-                'max_days'            => 21,
+                'max_days'            => 15,
                 'paid'                => true,
                 'carry_forward'       => true,
                 'requires_attachment' => false,
+                'hr_only'             => false,
             ],
             [
                 'name'                => 'Sick Leave',
@@ -23,6 +24,7 @@ class LeaveTypeSeeder extends Seeder
                 'paid'                => true,
                 'carry_forward'       => false,
                 'requires_attachment' => true,
+                'hr_only'             => false,
             ],
             [
                 'name'                => 'Maternity Leave',
@@ -30,13 +32,7 @@ class LeaveTypeSeeder extends Seeder
                 'paid'                => true,
                 'carry_forward'       => false,
                 'requires_attachment' => true,
-            ],
-            [
-                'name'                => 'Paternity Leave',
-                'max_days'            => 5,
-                'paid'                => true,
-                'carry_forward'       => false,
-                'requires_attachment' => false,
+                'hr_only'             => false,
             ],
             [
                 'name'                => 'Emergency Leave',
@@ -44,6 +40,7 @@ class LeaveTypeSeeder extends Seeder
                 'paid'                => true,
                 'carry_forward'       => false,
                 'requires_attachment' => false,
+                'hr_only'             => false,
             ],
             [
                 'name'                => 'Unpaid Leave',
@@ -51,6 +48,7 @@ class LeaveTypeSeeder extends Seeder
                 'paid'                => false,
                 'carry_forward'       => false,
                 'requires_attachment' => false,
+                'hr_only'             => true,
             ],
         ];
 

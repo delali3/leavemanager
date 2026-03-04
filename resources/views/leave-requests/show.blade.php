@@ -69,14 +69,34 @@
 
             @if($leaveRequest->manager_comment)
             <div class="col-span-2">
-                <dt class="text-xs font-medium text-gray-500 uppercase tracking-wider">Manager Comment</dt>
+                <dt class="text-xs font-medium text-gray-500 uppercase tracking-wider">HR Comment</dt>
                 <dd class="mt-1 p-3 bg-gray-50 rounded-lg text-gray-700 text-sm italic">{{ $leaveRequest->manager_comment }}</dd>
             </div>
             @endif
         </dl>
     </div>
 
-    {{-- Approve / Reject Form --}}
+    {{-- Print Leave Letter (approved requests only) --}}
+    @if($leaveRequest->isApproved())
+    <div class="bg-green-50 border border-green-200 rounded-xl p-4 flex items-center justify-between">
+        <div>
+            <p class="text-sm font-semibold text-green-800">Leave approved</p>
+            <p class="text-xs text-green-600 mt-0.5">Your leave letter is ready to print.</p>
+        </div>
+        <a href="{{ route('leave-requests.letter', $leaveRequest) }}"
+           target="_blank"
+           class="flex items-center gap-2 bg-green-600 text-white text-sm font-medium px-4 py-2 rounded-lg hover:bg-green-700 transition">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                      d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/>
+            </svg>
+            Print Leave Letter
+        </a>
+    </div>
+    @endif
+
+    {{-- Approve / Reject Form — HR and Admin only --}}
+    @hasanyrole('admin|hr')
     @can('approve', $leaveRequest)
     <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
         <h3 class="text-sm font-semibold text-gray-700 mb-4">Review This Request</h3>
@@ -93,9 +113,8 @@
                 @csrf
                 <input type="hidden" name="manager_comment" id="approveComment">
                 <button type="submit"
-                        onclick="document.getElementById('approveComment').value = document.getElementById('reviewComment').value"
-                        class="bg-green-600 text-white px-5 py-2 rounded-lg text-sm hover:bg-green-700"
-                        onclick="return confirm('Approve this leave request?')">
+                        onclick="document.getElementById('approveComment').value = document.getElementById('reviewComment').value; return confirm('Approve this leave request?')"
+                        class="bg-green-600 text-white px-5 py-2 rounded-lg text-sm hover:bg-green-700">
                     ✓ Approve
                 </button>
             </form>
@@ -112,6 +131,7 @@
         </div>
     </div>
     @endcan
+    @endhasanyrole
 
     {{-- Delete Button --}}
     <div class="flex items-center gap-3">

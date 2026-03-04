@@ -6,6 +6,7 @@ use App\Http\Requests\ApproveLeaveRequestRequest;
 use App\Http\Requests\StoreLeaveRequestRequest;
 use App\Models\LeaveRequest;
 use App\Models\LeaveType;
+use App\Models\User;
 use App\Services\LeaveRequestService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -47,22 +48,59 @@ class LeaveRequestController extends Controller
     {
         $this->authorize('create', LeaveRequest::class);
 
-        $leaveTypes = LeaveType::orderBy('name')->get();
-        $user       = $request->user();
-        $balances   = $user->leaveBalances()
+        $user = $request->user();
+
+        // Exclude hr_only types for non-HR/admin users
+        $leaveTypesQuery = LeaveType::orderBy('name');
+        if (!$user->hasAnyRole(['admin', 'hr'])) {
+            $leaveTypesQuery->where('hr_only', false);
+        }
+        $leaveTypes = $leaveTypesQuery->get();
+
+        // Managers, HR, and admins can apply on behalf of employees
+        $employees = collect();
+        if ($user->isManager() || $user->hasAnyRole(['admin', 'hr'])) {
+            $employees = User::role('employee')
+                ->where('is_active', true)
+                ->orderBy('name')
+                ->get();
+        }
+
+        // Determine whose balances to show (support ?target_user= reload)
+        $targetUserId = null;
+        $balanceUser  = $user;
+        if (($user->isManager() || $user->hasAnyRole(['admin', 'hr'])) && $request->input('target_user')) {
+            $found = User::find((int) $request->input('target_user'));
+            if ($found) {
+                $balanceUser  = $found;
+                $targetUserId = $found->id;
+            }
+        }
+
+        $balances = $balanceUser->leaveBalances()
             ->with('leaveType')
             ->where('year', now()->year)
             ->get()
             ->keyBy('leave_type_id');
 
-        return view('leave-requests.create', compact('leaveTypes', 'balances'));
+        return view('leave-requests.create', compact('leaveTypes', 'balances', 'employees', 'targetUserId'));
     }
 
     public function store(StoreLeaveRequestRequest $request): RedirectResponse
     {
         try {
+            $user = $request->user();
+
+            // Managers / HR / admin may submit on behalf of an employee
+            $onBehalfOfId = $request->input('on_behalf_of_user_id');
+            if ($onBehalfOfId && ($user->isManager() || $user->hasAnyRole(['admin', 'hr']))) {
+                $targetUser = User::findOrFail((int) $onBehalfOfId);
+            } else {
+                $targetUser = $user;
+            }
+
             $leaveRequest = $this->service->create(
-                $request->user(),
+                $targetUser,
                 $request->validated(),
                 $request->file('attachment')
             );
@@ -125,5 +163,19 @@ class LeaveRequestController extends Controller
 
         return redirect()->route('leave-requests.index')
             ->with('success', 'Leave request deleted.');
+    }
+
+    public function letter(LeaveRequest $leaveRequest): mixed
+    {
+        $this->authorize('view', $leaveRequest);
+
+        if (!$leaveRequest->isApproved()) {
+            return redirect()->route('leave-requests.show', $leaveRequest)
+                ->with('error', 'Leave letter is only available for approved requests.');
+        }
+
+        $leaveRequest->load(['user', 'leaveType', 'approver']);
+
+        return view('leave-requests.letter', compact('leaveRequest'));
     }
 }
